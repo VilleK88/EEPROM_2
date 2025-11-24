@@ -1,22 +1,29 @@
-# Exercise 1 – Store the state of the program to EEPROM    
+# Exercise 2 – Store log strings in EEPROM      
   
-Implement a program that switches LEDs on and off and remembers the state of the LEDs across reboot  
-and/or power off. The program should work as follows:  
--  When the program starts it reads the state of the LEDs from EEPROM. If no valid state is found in  
-    the EEPROM the middle LED is switched on and the other two are switched off. The program must  
-    print number of seconds since power up and the state of the LEDs to stdout. Use time_us_64() to  
-    get a timestamp and convert that to seconds.  
--   Each of the buttons SW0, SW1, and SW2 on the development board is associated with an LED.  
-    When user presses a button, the corresponding LED toggles. Pressing and holding the button may  
-    not make the LED to blink or to toggle multiple times. When state of the LEDs is changed the new  
-    state must be printed to stdout with a number of seconds since program was started.  
--   When the state of an LEDs changes the program stores the state of all LEDs in the EEPROM and  
-    prints the state to LEDs to the debug UART. The program must employ a method to validate that  
-    settings read from the EEPROM are correct.  
--   The program must use the highest possible EEPROM address to store the LED state.  
-  
-A simple way to validate the LED state is store it to EEPROM twice: normally (un-inverted) and inverted.  
-When the state is read back both values are read, the inverted value is inverted after reading, and then the  
-values are compared. If the values match then LED state was stored correctly in the EEPROM. By storing an  
-inverted value, we can avoid case where both bytes are identical, a typical case with erased/out of the box  
-memory, to be accepted as a valid value.  
+Improve Exercise 1 by adding a persistent log that stores messages to EEPROM. When the program starts it
+writes “Boot” to the log and every time when state or LEDs is changed the state change message, as
+described in Exercise 1, is also written to the log.
+The log must have the following properties:
+-  Log starts from address 0 in the EEPROM.
+-  First two kilobytes (2048 bytes) of EEPROM are used for the log.
+-  Log is persistent, after power up writing to log continues from location where it left off last time.
+The log is erased only when it is full or by user command.
+-  Each log entry is reserved 64 bytes.
+   -  First entry is at address 0, second at address 64, third at address 128, etc.
+   -  Log can contain up to 32 entries.
+-  A log entry consists of a string that contains maximum 61 characters, a terminating null character
+(zero) and two-byte CRC that is used to validate the integrity of the data. A maximum length log
+entry uses all 64 bytes. A shorter entry will not use all reserved bytes. The string must contain at
+least one character.
+-  When a log entry is written to the log, the string is written to the log including the terminating zero.
+Immediately after the terminating zero follows a 16-bit CRC, MSB first followed by LSB.
+   -  Entry is written to the first unused (invalid) location that is available.
+   -  If the log is full then the log is erased first and then entry is written to address 0.
+-  User can read the content of the log by typing read and pressing enter.
+   -  Program starts reading and validating log entries starting from address zero. If a valid string
+is found it is printed and program reads string from the next location.
+   -  A string is valid if the first character is not zero, there is a zero in the string before index 62,
+and the string passes the CRC validation.
+   -  Printing stops when an invalid string is encountered or the end log are is reached.
+-  User can erase the log by typing erase and pressing enter.
+   -  Erasing is done by writing a zero at the first byte of every log entry.

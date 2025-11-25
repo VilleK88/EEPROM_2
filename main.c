@@ -243,15 +243,23 @@ void handle_input() {
 
     int c;
     while ((c = getchar_timeout_us(0)) != PICO_ERROR_TIMEOUT) {
-        if (c != '\r' && c != '\n') {
-            if (i <= LOG_MAX_LEN) {
-                user_input[i++] = (char)c;
-            }
+        if (c != '\n' && c != '\r') {
+            user_input[i++] = (char)c;
         }
-        else if (i > 0) {
-            user_input[i] = '\0';
-            handle_cmd(user_input);
-            i = 0;
+        else {
+            if (i <= 0 && c == '\r') {
+                printf("Empty input.\r\n");
+            }
+            else if (i > 0 && i <= LOG_MAX_LEN) {
+                user_input[i] = '\0';
+                handle_cmd(user_input);
+                i = 0;
+            }
+            else if (i > LOG_MAX_LEN) {
+                i = 0;
+                while ((c = getchar()) != '\n' && c != EOF) {}
+                printf("Input too long (max %d characters).\r\n", LOG_MAX_LEN);
+            }
         }
     }
 }

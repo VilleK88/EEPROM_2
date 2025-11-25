@@ -219,27 +219,28 @@ bool next_log_index(int *index) {
     return false;
 }
 
-bool validate_log_entry(uint8_t addr) {
+bool validate_log_entry(const uint8_t addr) {
     uint8_t buffer[LOG_ENTRY_SIZE];
     read_log_entry(addr, buffer);
     if (buffer[0] != 0) {
         bool end_mark = false;
         int index = 0;
+
         do {
             if (buffer[index++] == '\0')
                 end_mark = true;
         } while (index <= LOG_MAX_LEN && !end_mark);
+
         const int total_len = index + 2;
         if (end_mark && total_len <= LOG_ENTRY_SIZE) {
-            if (crc16(buffer, total_len) == 0) {
+            if (crc16(buffer, total_len) == 0)
                 return true;
-            }
         }
     }
     return false;
 }
 
-void read_log_entry(uint16_t addr, uint8_t *buffer) {
+void read_log_entry(const uint16_t addr, uint8_t *buffer) {
     for (int i = 0; i < LOG_ENTRY_SIZE; i++) {
         buffer[i] = read_byte(addr + i);
     }

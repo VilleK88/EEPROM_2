@@ -255,10 +255,7 @@ void handle_input() {
             user_input[i++] = (char)c;
         }
         else {
-            if (i <= 0 && c == '\r') {
-                printf("Empty input.\r\n");
-            }
-            else if (i > 0 && i <= LOG_MAX_LEN) {
+            if (i > 0 && i <= LOG_MAX_LEN) {
                 user_input[i] = '\0';
                 handle_cmd(user_input);
                 i = 0;
@@ -267,6 +264,9 @@ void handle_input() {
                 i = 0;
                 while ((c = getchar()) != '\n' && c != EOF) {}
                 printf("Input too long (max %d characters).\r\n", LOG_MAX_LEN);
+            }
+            else if (i <= 0 && c == '\r') {
+                printf("Empty input.\r\n");
             }
         }
     }

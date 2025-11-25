@@ -185,3 +185,68 @@ uint8_t read_byte(uint16_t const address) {
     i2c_read_blocking(I2C, EEPROM_ADDRESS, &data, 1, false);
     return data;
 }
+
+char *handle_input() {
+    char *string = malloc(64 * sizeof(char));
+    if (string) {
+        bool stop_loop = false;
+        while (!stop_loop) {
+            printf("Enter password: ");
+            stop_loop = get_input(string);
+        }
+        return string;
+    }
+    printf("Memory allocation failed.\r\n");
+    exit(EXIT_FAILURE);
+}
+
+bool get_input(char *user_input) {
+    if (fgets(user_input, INPUT_MAX_LEN, stdin)) {
+        if (strchr(user_input, '\n') == NULL) {
+            int c = 0;
+            while ((c = getchar()) != '\n' && c != EOF) {}
+            printf("Input too long (max %d characters).\r\n", LOG_MAX_LEN);
+            return false;
+        }
+        remove_newline(user_input);
+        if (user_input[0] == '\0') {
+            printf("Empty input.\r\n");
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+void remove_newline(char *user_input) {
+    if (user_input[strlen(user_input) - 1] == '\n')
+        user_input[strlen(user_input) - 1] = '\0';
+}
+
+void log_entry() {
+    char *log = handle_input();
+    const int log_len = (int)strlen(log);
+
+    uint8_t *buffer = (uint8_t*)log;
+    uint16_t crc = crc16(buffer, log_len + 1);
+
+    buffer[log_len + 1] = (uint8_t)(crc >> 8);
+    buffer[log_len + 2] = (uint8_t) crc;
+
+    const int total_log_len = log_len + 3;
+    for (int i = 0; i < total_log_len; i++) {
+        write_byte(0 + i, (uint8_t)log[i]);
+    }
+    free(log);
+}
+
+uint16_t crc16(const uint8_t *data_p, size_t length) {
+    uint8_t x;
+    uint16_t crc = 0xFFFF;
+    while (length--) {
+        x = crc >> 8 ^ *data_p++;
+        x ^= x >> 4;
+        crc = crc << 8 ^ (uint16_t) (x << 12) ^ (uint16_t) (x << 5) ^ (uint16_t) x;
+    }
+    return crc;
+}

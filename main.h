@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "utils/light_states.h"
 
@@ -31,8 +32,12 @@ static const uint buttons[] = {SW_R, SW_M, SW_L};
 #define I2C_SIZE 2
 
 #define EEPROM_ADDRESS 0x50 // EEPROM I2C address
-
 static const uint i2cs[] = {I2C_SDA, I2C_SCL};
+
+#define LOG_ENTRY_SIZE 64
+#define LOG_MAX_LEN 61
+#define INPUT_MAX_LEN (LOG_MAX_LEN + 2)
+#define MAX_LOGS 32
 
 // Type of event coming from the interrupt callback
 typedef enum { EV_SW_M, EV_SW_L, EV_SW_R } event_type;
@@ -53,5 +58,10 @@ void init_i2c();
 uint clamp(int br); // returns value between 0 and TOP
 void write_byte(uint16_t address, uint8_t value);
 uint8_t read_byte(uint16_t address);
+char *handle_input();
+bool get_input(char *user_input);
+void remove_newline(char *user_input);
+void log_entry();
+uint16_t crc16(const uint8_t *data_p, size_t length);
 
 #endif

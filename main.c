@@ -10,6 +10,8 @@ int main() {
     // Initialize I2C
     init_i2c();
 
+    write_log_entry("Boot");
+
     if (check_if_led_states_are_valid()) {
         printf("States are correct.\r\n");
         init_led_states(true);
@@ -34,6 +36,8 @@ int main() {
             if (event.type == EV_SW_L && event.data == 1)
                 light_switch(LED_L, LED_L_ADDR);
         }
+
+        handle_input();
 
         sleep_ms(10); // 10 ms delay (0.01 second) to reduce CPU usage
     }
@@ -186,58 +190,26 @@ uint8_t read_byte(uint16_t const address) {
     return data;
 }
 
-char *handle_input() {
-    char *string = malloc(64 * sizeof(char));
-    if (string) {
-        bool stop_loop = false;
-        while (!stop_loop) {
-            printf("Enter password: ");
-            stop_loop = get_input(string);
-        }
-        return string;
-    }
-    printf("Memory allocation failed.\r\n");
-    exit(EXIT_FAILURE);
-}
-
-bool get_input(char *user_input) {
-    if (fgets(user_input, INPUT_MAX_LEN, stdin)) {
-        if (strchr(user_input, '\n') == NULL) {
-            int c = 0;
-            while ((c = getchar()) != '\n' && c != EOF) {}
-            printf("Input too long (max %d characters).\r\n", LOG_MAX_LEN);
-            return false;
-        }
-        remove_newline(user_input);
-        if (user_input[0] == '\0') {
-            printf("Empty input.\r\n");
-            return false;
-        }
-        return true;
-    }
-    return false;
-}
-
-void remove_newline(char *user_input) {
-    if (user_input[strlen(user_input) - 1] == '\n')
-        user_input[strlen(user_input) - 1] = '\0';
-}
-
-void log_entry() {
-    char *log = handle_input();
+void write_log_entry(char *log) {
     const int log_len = (int)strlen(log);
+    if (log_len <= LOG_MAX_LEN) {
+        uint8_t *buffer = (uint8_t*)log;
+        uint16_t crc = crc16(buffer, log_len + 1);
 
-    uint8_t *buffer = (uint8_t*)log;
-    uint16_t crc = crc16(buffer, log_len + 1);
+        buffer[log_len + 1] = (uint8_t)(crc >> 8);
+        buffer[log_len + 2] = (uint8_t) crc;
 
-    buffer[log_len + 1] = (uint8_t)(crc >> 8);
-    buffer[log_len + 2] = (uint8_t) crc;
-
-    const int total_log_len = log_len + 3;
-    for (int i = 0; i < total_log_len; i++) {
-        write_byte(0 + i, (uint8_t)log[i]);
+        const int total_log_len = log_len + 3;
+        for (int i = 0; i < total_log_len; i++) {
+            write_byte(0 + i, (uint8_t)log[i]);
+        }
     }
-    free(log);
+}
+
+void read_log_entry(uint16_t addr, uint8_t *buffer) {
+    for (int i = 0; i < LOG_ENTRY_SIZE; i++) {
+        buffer[i] = read_byte(addr + i);
+    }
 }
 
 uint16_t crc16(const uint8_t *data_p, size_t length) {
@@ -249,4 +221,37 @@ uint16_t crc16(const uint8_t *data_p, size_t length) {
         crc = crc << 8 ^ (uint16_t) (x << 12) ^ (uint16_t) (x << 5) ^ (uint16_t) x;
     }
     return crc;
+}
+
+void handle_cmd(char *line) {
+    if (strcmp(line, "read") == 0) {
+        uint8_t buffer[LOG_ENTRY_SIZE];
+        read_log_entry(0, buffer);
+        printf("Log entry: %s\r\n",(char*) buffer);
+    }
+    else if (strcmp(line, "erase") == 0) {
+        printf("erase\r\n");
+    }
+    else {
+        write_log_entry(line);
+    }
+}
+
+void handle_input() {
+    static char user_input[LOG_MAX_LEN];
+    static int i = 0;
+
+    int c;
+    while ((c = getchar_timeout_us(0)) != PICO_ERROR_TIMEOUT) {
+        if (c != '\r' && c != '\n') {
+            if (i <= LOG_MAX_LEN) {
+                user_input[i++] = (char)c;
+            }
+        }
+        else if (i > 0) {
+            user_input[i] = '\0';
+            handle_cmd(user_input);
+            i = 0;
+        }
+    }
 }

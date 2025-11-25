@@ -61,6 +61,7 @@ void write_byte(uint16_t address, uint8_t value);
 uint8_t read_byte(uint16_t address);
 void write_log_entry(char *log);
 void read_log_entry(uint16_t addr, uint8_t *buffer);
+void erase_log_entry();
 uint16_t crc16(const uint8_t *data_p, size_t length);
 void handle_cmd(char *line);
 void handle_input();

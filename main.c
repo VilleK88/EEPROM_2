@@ -212,6 +212,14 @@ void read_log_entry(uint16_t addr, uint8_t *buffer) {
     }
 }
 
+void erase_log_entry() {
+    int j = 0;
+    for (int i = 0; i < 32; i++) {
+        write_byte(j, '\0');
+        j += 64;
+    }
+}
+
 uint16_t crc16(const uint8_t *data_p, size_t length) {
     uint8_t x;
     uint16_t crc = 0xFFFF;
@@ -230,7 +238,7 @@ void handle_cmd(char *line) {
         printf("Log entry: %s\r\n",(char*) buffer);
     }
     else if (strcmp(line, "erase") == 0) {
-        printf("erase\r\n");
+        erase_log_entry();
     }
     else {
         write_log_entry(line);

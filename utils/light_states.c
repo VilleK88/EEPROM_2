@@ -22,7 +22,7 @@ void set_led_state(led_state *ls, uint8_t const value) {
     ls->not_state = ~value;
 }
 
-bool led_state_is_valid(led_state *ls) {
+bool led_state_is_valid(const led_state *ls) {
     return ls->state == (uint8_t) ~ls->not_state;
 }
 
@@ -41,7 +41,7 @@ void init_led_states(const bool valid) {
     }
 }
 
-void init_led_state(uint led, uint16_t addr, uint8_t value) {
+void init_led_state(const uint led, const uint16_t addr, const uint8_t value) {
     led_state ls;
     set_led_state(&ls, value);
     write_byte(addr, ls.state);
@@ -77,9 +77,9 @@ void set_brightness(const uint led, const uint brightness) {
     pwm_set_chan_level(slice, chan, brightness); // Update duty cycle value
 }
 
-void print_led_states(bool write_log) {
+void print_led_states(const bool write_log) {
     char log_entry[LOG_ENTRY_SIZE];
-    char *char_leds[] = {"Middle", "Left", "Right"};
+    const char *char_leds[] = {"Middle", "Left", "Right"};
 
     for (int i = 0; i < LEDS_SIZE; i++) {
         const char *current_led = char_leds[i];

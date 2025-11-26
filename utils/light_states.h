@@ -40,7 +40,7 @@ typedef struct led_state {
 bool check_if_led_states_are_valid();
 bool light_on(uint16_t addr);
 void set_led_state(led_state *ls, uint8_t value);
-bool led_state_is_valid(led_state *ls);
+bool led_state_is_valid(const led_state *ls);
 void init_led_states(bool valid);
 void init_led_state(uint led, uint16_t addr, uint8_t value);
 void light_switch(uint led, uint16_t addr); // Turn lights on/off

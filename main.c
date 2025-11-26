@@ -191,6 +191,7 @@ uint8_t read_byte(uint16_t const address) {
 }
 
 void write_log_entry(const char *log) {
+    printf("write_log_entry\r\n");
     int log_len = (int)strnlen(log, LOG_MAX_LEN);
     if (log_len <= LOG_MAX_LEN) {
         uint8_t buffer[LOG_ENTRY_SIZE];
@@ -199,31 +200,26 @@ void write_log_entry(const char *log) {
         buffer[log_len] = '\0';
 
         uint16_t crc = crc16(buffer, log_len + 1);
-        printf("write crc16: 0x%04X\r\n", crc);
         buffer[log_len + 1] = (uint8_t)(crc >> 8);
         buffer[log_len + 2] = (uint8_t) crc;
 
-        int total_log_len = log_len + 3;
+        const int total_log_len = log_len + 3;
 
-        const uint8_t start_index = next_log_index();
-
-        /*for (int i = 0; i < total_log_len; i++) {
-            write_byte(start_index + i, (uint8_t)log[i]);
-        }*/
+        const uint16_t start_index = next_log_index();
         for (int i = 0; i < total_log_len; i++) {
-            write_byte(0 + i, buffer[i]);
+            write_byte(start_index + i, buffer[i]);
         }
     }
 }
 
 uint16_t next_log_index() {
-    uint16_t j = 0;
+    uint16_t addr = 0;
 
     for (int i = 0; i < MAX_LOGS; i++) {
-        if (!validate_log_entry(j)) {
-            return j;
+        if (!validate_log_entry(addr)) {
+            return addr;
         }
-        j += 64;
+        addr += LOG_ENTRY_SIZE;
     }
     erase_log_entry();
     return 0;
@@ -246,7 +242,6 @@ bool validate_log_entry(const uint16_t addr) {
         const size_t total_len = index + 3;
         if (end_mark && total_len <= LOG_ENTRY_SIZE) {
             uint16_t crc = crc16(buffer, total_len);
-            printf("inside validation read crc16: 0x%04X\r\n", crc);
             return crc == 0;
         }
     }
@@ -254,36 +249,15 @@ bool validate_log_entry(const uint16_t addr) {
 }
 
 void print_log_entries() {
-    //printf("print_log_entries\r\n");
-    uint8_t j = 0;
-    /*for (int i = 0; i < 32; i++) {
+    uint16_t j = 0;
+    for (int i = 0; i < 32; i++) {
         if (validate_log_entry(j)) {
             uint8_t buffer[LOG_ENTRY_SIZE];
             read_log_entry(j, buffer);
-            printf("%s\r\n", (char*)buffer);
+            printf("%d. log: %s\r\n", i + 1, (char*)buffer);
         }
         j += 64;
-    }*/
-    //uint8_t buffer[LOG_ENTRY_SIZE];
-    //read_log_entry(0, buffer);
-    //printf("Log entry: %s\r\n", (char*)buffer);
-    if (validate_log_entry(0)) {
-        printf("validation: true\r\n");
     }
-    else {
-        printf("validation: false\r\n");
-    }
-    uint8_t buffer[LOG_ENTRY_SIZE];
-    read_log_entry(0, buffer);
-    uint16_t crc = crc16(buffer, 6);
-    printf("read crc16: 0x%04X\r\n", crc);
-}
-
-void print_log_entry(const uint16_t addr) {
-    for (int i = 0; i < LOG_ENTRY_SIZE; i++) {
-        printf("%c", read_byte(addr + i));
-    }
-    printf("\r\n");
 }
 
 void read_log_entry(const uint16_t addr, uint8_t *buffer) {
@@ -293,6 +267,7 @@ void read_log_entry(const uint16_t addr, uint8_t *buffer) {
 }
 
 void erase_log_entry() {
+    printf("Erase log entry.\r\n");
     int j = 0;
     for (int i = 0; i < 32; i++) {
         write_byte(j, '\0');

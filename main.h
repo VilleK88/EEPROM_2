@@ -63,7 +63,6 @@ void write_log_entry(const char *log);
 uint16_t next_log_index();
 bool validate_log_entry(uint16_t addr);
 void print_log_entries();
-void print_log_entry(uint16_t addr);
 void read_log_entry(uint16_t addr, uint8_t *buffer);
 void erase_log_entry();
 uint16_t crc16(const uint8_t *data_p, size_t length);

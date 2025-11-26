@@ -27,6 +27,8 @@ add_executable(${PROJECT_NAME}
         main.h
         utils/light_states.c
         utils/light_states.h
+        utils/log.c
+        utils/log.h
 )
 
 # Create map/bin/hex/uf2 files

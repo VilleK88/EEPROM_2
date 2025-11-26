@@ -68,7 +68,7 @@ void light_switch(const uint led, const uint16_t addr) {
         write_byte(addr+1, ls.not_state);
         set_brightness(led, 0);
     }
-    print_led_states();
+    print_led_states(true);
 }
 
 void set_brightness(const uint led, const uint brightness) {
@@ -77,7 +77,7 @@ void set_brightness(const uint led, const uint brightness) {
     pwm_set_chan_level(slice, chan, brightness); // Update duty cycle value
 }
 
-void print_led_states() {
+void print_led_states(bool write_log) {
     char log_entry[LOG_ENTRY_SIZE];
     char *char_leds[] = {"Middle", "Left", "Right"};
 
@@ -85,26 +85,17 @@ void print_led_states() {
         const char *current_led = char_leds[i];
         strcat(log_entry, current_led);
         strcat(log_entry, " led: ");
-
         if (light_on(leds_addr[i]))
             strcat(log_entry, "On");
         else
             strcat(log_entry, "Off");
-
         if (i < LEDS_SIZE - 1)
             strcat(log_entry, ", ");
     }
 
     strcat(log_entry, ".");
     printf("%s\r\n", log_entry);
-    write_log_entry(log_entry);
+    if (write_log)
+        write_log_entry(log_entry);
     printf("The number of seconds since power-on: %.2f.\r\n", (float)time_us_64() / 1000000);
-}
-
-void print_led_state(char *led, const uint16_t addr) {
-    printf("%s led state: ", led);
-    if (light_on(addr))
-        printf("On");
-    else
-        printf("Off");
 }

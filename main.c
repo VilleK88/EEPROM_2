@@ -20,7 +20,7 @@ int main() {
         printf("States not correct.\r\n");
         init_led_states(false);
     }
-    print_led_states();
+    print_led_states(false);
 
     event_t event;
     while (true) {

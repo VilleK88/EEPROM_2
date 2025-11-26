@@ -164,15 +164,10 @@ uint clamp(const int br) {
 }
 
 void handle_cmd(const char *line) {
-    if (strcmp(line, "read") == 0) {
+    if (strcmp(line, "read") == 0)
         print_log_entries();
-    }
-    else if (strcmp(line, "erase") == 0) {
-        erase_log_entry();
-    }
-    else {
-        write_log_entry(line);
-    }
+    else if (strcmp(line, "erase") == 0)
+        erase_log_entries();
 }
 
 void handle_input() {

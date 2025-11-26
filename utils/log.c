@@ -28,7 +28,6 @@ uint8_t read_byte(uint16_t const address) {
 }
 
 void write_log_entry(const char *log) {
-    printf("Write log entry\r\n");
     const int log_len = (int)strnlen(log, LOG_MAX_LEN);
     if (log_len <= LOG_MAX_LEN) {
         uint8_t buffer[LOG_ENTRY_SIZE];
@@ -58,7 +57,7 @@ uint16_t next_log_index() {
         }
         addr += LOG_ENTRY_SIZE;
     }
-    erase_log_entry();
+    erase_log_entries();
     return 0;
 }
 
@@ -103,8 +102,8 @@ void read_log_entry(const uint16_t addr, uint8_t *buffer) {
     }
 }
 
-void erase_log_entry() {
-    printf("Erase log entry.\r\n");
+void erase_log_entries() {
+    printf("Erase log entries.\r\n");
     int j = 0;
     for (int i = 0; i < 32; i++) {
         write_byte(j, '\0');

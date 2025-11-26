@@ -78,13 +78,26 @@ void set_brightness(const uint led, const uint brightness) {
 }
 
 void print_led_states() {
+    char log_entry[LOG_ENTRY_SIZE];
     char *char_leds[] = {"Middle", "Left", "Right"};
+
     for (int i = 0; i < LEDS_SIZE; i++) {
-        print_led_state(char_leds[i], leds_addr[i]);
-        if (i < LEDS_SIZE-1)
-            printf(", ");
+        const char *current_led = char_leds[i];
+        strcat(log_entry, current_led);
+        strcat(log_entry, " led: ");
+
+        if (light_on(leds_addr[i]))
+            strcat(log_entry, "On");
+        else
+            strcat(log_entry, "Off");
+
+        if (i < LEDS_SIZE - 1)
+            strcat(log_entry, ", ");
     }
-    printf(".\r\n");
+
+    strcat(log_entry, ".");
+    printf("%s\r\n", log_entry);
+    write_log_entry(log_entry);
     printf("The number of seconds since power-on: %.2f.\r\n", (float)time_us_64() / 1000000);
 }
 

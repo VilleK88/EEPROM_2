@@ -191,7 +191,7 @@ uint8_t read_byte(uint16_t const address) {
 }
 
 void write_log_entry(const char *log) {
-    printf("write_log_entry\r\n");
+    printf("Write log entry\r\n");
     int log_len = (int)strnlen(log, LOG_MAX_LEN);
     if (log_len <= LOG_MAX_LEN) {
         uint8_t buffer[LOG_ENTRY_SIZE];

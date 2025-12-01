@@ -7,7 +7,7 @@
 
 #define LOG_ENTRY_SIZE 64
 #define LOG_MAX_LEN 61
-#define MAX_LOGS 32
+#define MAX_LOGS 31
 
 #define WB_SLEEP_MS 3 // Write byte sleep ms
 

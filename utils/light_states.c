@@ -1,10 +1,10 @@
 #include "light_states.h"
 
 bool check_if_led_states_are_valid() {
-    for (int i = LED_L_ADDR; i <= LED_R_ADDR; i+=2) {
+    for (int i = LED_L_ADDR; i <= LED_R_ADDR; i +=2) {
         led_state ls;
         ls.state = read_byte(i);
-        ls.not_state = read_byte(i+1);
+        ls.not_state = read_byte(i + 1);
         if (!led_state_is_valid(&ls))
             return false;
     }
@@ -46,10 +46,10 @@ void init_led_state(const uint led, const uint16_t addr, const uint8_t value) {
     set_led_state(&ls, value);
     write_byte(addr, ls.state);
     write_byte(addr+1, ls.not_state);
-    if (value == 1) {
+    if (value == LIGHT_ON) {
         set_brightness(led, BR_MID);
     }
-    else if (value == 0) {
+    else if (value == LIGHT_OFF) {
         set_brightness(led, 0);
     }
 }
@@ -79,18 +79,22 @@ void set_brightness(const uint led, const uint brightness) {
 
 void print_led_states(const bool write_log) {
     char log_entry[LOG_ENTRY_SIZE];
+    log_entry[0] = '\0';
     const char *char_leds[] = {"Middle", "Left", "Right"};
 
     for (int i = 0; i < LEDS_SIZE; i++) {
         const char *current_led = char_leds[i];
         strcat(log_entry, current_led);
         strcat(log_entry, " led: ");
-        if (light_on(leds_addr[i]))
+        if (light_on(leds_addr[i])) {
             strcat(log_entry, "On");
-        else
+        }
+        else {
             strcat(log_entry, "Off");
-        if (i < LEDS_SIZE - 1)
+        }
+        if (i < LEDS_SIZE - 1) {
             strcat(log_entry, ", ");
+        }
     }
 
     strcat(log_entry, ".");

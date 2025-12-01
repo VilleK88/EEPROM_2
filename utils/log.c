@@ -14,7 +14,7 @@ void write_byte(uint16_t const address, uint8_t const value) {
     // - 2 bytes of address
     // - 1 byte of data
     i2c_write_blocking(I2C, EEPROM_ADDRESS, buffer, 3, false);
-    sleep_ms(5);
+    sleep_ms(WB_SLEEP_MS);
 }
 
 uint8_t read_byte(uint16_t const address) {
@@ -86,13 +86,13 @@ bool validate_log_entry(const uint16_t addr) {
 
 void print_log_entries() {
     uint16_t j = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < MAX_LOGS; i++) {
         if (validate_log_entry(j)) {
             uint8_t buffer[LOG_ENTRY_SIZE];
             read_log_entry(j, buffer);
             printf("%d. log: %s\r\n", i + 1, (char*)buffer);
         }
-        j += 64;
+        j += LOG_ENTRY_SIZE;
     }
 }
 
@@ -105,9 +105,9 @@ void read_log_entry(const uint16_t addr, uint8_t *buffer) {
 void erase_log_entries() {
     printf("Erase log entries.\r\n");
     int j = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < MAX_LOGS; i++) {
         write_byte(j, '\0');
-        j += 64;
+        j += LOG_ENTRY_SIZE;
     }
 }
 

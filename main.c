@@ -10,7 +10,7 @@ int main() {
     // Initialize I2C
     init_i2c();
 
-    write_log_entry("Boot");
+    write_log_entry("Boot.");
 
     if (check_if_led_states_are_valid()) {
         printf("States are correct.\r\n");
